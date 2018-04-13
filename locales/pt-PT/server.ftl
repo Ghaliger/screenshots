@@ -116,6 +116,8 @@ shotPageAbuseButton =
     .title = Reportar esta captura por abuso, spam, ou outros problemas
 shotPageDownloadShot =
     .title = Transferir
+shotPageEditButton =
+    .title = Editar esta imagem
 shotPageDownload = Transferir
 shotPageScreenshotsDescription = As capturas de ecrã tornadas simples. Tire, guarde e partilhe capturas de ecrã sem sair do Firefox.
 shotPageUpsellFirefox = Obter o Firefox agora
@@ -147,28 +149,34 @@ shotPageExpiresIn = expira { $timediff }
 # Note: { $timediff } is a placeholder for a past relative time clause, like "1 week ago" or "yesterday"
 shotPageExpired = expirou { $timediff }
 timeDiffJustNow = agora mesmo
-timeDiffMinutesAgo = { $number ->
+timeDiffMinutesAgo =
+    { $number ->
         [one] 1 minuto atrás
        *[other] { $number } minutos atrás
     }
-timeDiffHoursAgo = { $number ->
+timeDiffHoursAgo =
+    { $number ->
         [one] 1 hora atrás
        *[other] { $number } horas atrás
     }
-timeDiffDaysAgo = { $number ->
+timeDiffDaysAgo =
+    { $number ->
         [one] ontem
        *[other] { $number } dias atrás
     }
 timeDiffFutureSeconds = em alguns segundos
-timeDiffFutureMinutes = { $number ->
+timeDiffFutureMinutes =
+    { $number ->
         [one] num minuto
        *[other] em { $number } minutos
     }
-timeDiffFutureHours = { $number ->
+timeDiffFutureHours =
+    { $number ->
         [one] numa hora
        *[other] em { $number } horas
     }
-timeDiffFutureDays = { $number ->
+timeDiffFutureDays =
+    { $number ->
         [one] amanhã
        *[other] em { $number } dias
     }
@@ -193,6 +201,37 @@ annotationCropConfirmButton = Confirmar
     .title = Confirmar seleção
 annotationCropCancelButton = Cancelar
     .title = Cancelar seleção
+annotationColorWhite =
+    .title = Branco
+annotationColorBlack =
+    .title = Preto
+annotationColorRed =
+    .title = Vermelho
+annotationColorGreen =
+    .title = Verde
+annotationColorBlue =
+    .title = Azul
+annotationColorYellow =
+    .title = Amarelo
+annotationColorPurple =
+    .title = Roxo
+annotationColorSeaGreen =
+    .title = Verde Mar
+annotationColorGrey =
+    .title = Cinzento
+
+## Settings Page
+
+settingsDisconnectButton = Desligar
+    .title = Desligar
+settingsGuestAccountMessage = Conta de convidado
+settingsSignInInvite = Iniciar sessão para sincronizar entre dispositivos
+settingsSignInButton = Iniciar sessão
+    .title = Iniciar sessão
+SettingsPageHeader = Definições do Firefox Screenshots
+settingsDescription = Pode iniciar sessão com Contas Firefox para sincronizar todas as suas capturas de ecrã entre dispositivos e aceder-las privadamente.
+settingsClosePreferences =
+    .title = Fechar preferências
 
 ## Shotindex page
 

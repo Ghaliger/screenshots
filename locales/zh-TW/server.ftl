@@ -116,6 +116,8 @@ shotPageAbuseButton =
     .title = 回報這張圖片是濫用、垃圾信，或有其他問題
 shotPageDownloadShot =
     .title = 下載
+shotPageEditButton =
+    .title = 編輯此圖片
 shotPageDownload = 下載
 shotPageScreenshotsDescription = 拍攝擷圖變得簡單。不必離開 Firefox 就能拍攝、儲存、分享畫面擷圖。
 shotPageUpsellFirefox = 立即下載 Firefox
@@ -175,6 +177,38 @@ annotationCropConfirmButton = 確認
     .title = 確認選擇
 annotationCropCancelButton = 取消
     .title = 取消選擇
+annotationColorWhite =
+    .title = 白色
+annotationColorBlack =
+    .title = 黑色
+annotationColorRed =
+    .title = 紅色
+annotationColorGreen =
+    .title = 綠色
+annotationColorBlue =
+    .title = 藍色
+annotationColorYellow =
+    .title = 黃色
+annotationColorPurple =
+    .title = 紫色
+annotationColorSeaGreen =
+    .title = 海綠色
+annotationColorGrey =
+    .title = 灰色
+
+## Settings Page
+
+settingsDisconnectButton = 取消連線
+    .title = 取消連線
+settingsGuestAccountMessage = 訪客帳號
+settingsSignInInvite = 登入後即可同步不同裝置
+settingsSignInButton = 登入
+    .title = 登入
+SettingsPageHeader = Firefox Screenshots 設定
+settingsDescription = 使用 Firefox 帳號登入後，您就可以在不同裝置間同步拍攝的擷圖，並以私人的方式使用。
+settingsPageSubHeader = 同步與帳號
+settingsClosePreferences =
+    .title = 關閉偏好設定
 
 ## Shotindex page
 

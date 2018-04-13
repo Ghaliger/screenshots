@@ -74,7 +74,7 @@ leavePageDeleted = Alle skjermbilda dine er sletta!
 ## Not Found page
 
 notFoundPageTitle = Fann ikkje sida
-notFoundPageIntro = Ups.
+notFoundPageIntro = Ops.
 notFoundPageDescription = Fann ikkje sida.
 
 ## Shot page
@@ -116,6 +116,8 @@ shotPageAbuseButton =
     .title = Rapporter dette bildet for brot, spam eller andre problem
 shotPageDownloadShot =
     .title = Last ned
+shotPageEditButton =
+    .title = Rediger dette bildet
 shotPageDownload = Last ned
 shotPageScreenshotsDescription = Skjermbilde gjort enkelt. Ta, lagre og del skjermbilde utan å forlate Firefox.
 shotPageUpsellFirefox = Last ned Firefox no
@@ -147,28 +149,34 @@ shotPageExpiresIn = går ut { $timediff }
 # Note: { $timediff } is a placeholder for a past relative time clause, like "1 week ago" or "yesterday"
 shotPageExpired = gått ut { $timediff }
 timeDiffJustNow = akkurat no
-timeDiffMinutesAgo = { $number ->
+timeDiffMinutesAgo =
+    { $number ->
         [one] 1 minutt sidan
        *[other] { $number } minutt sidan
     }
-timeDiffHoursAgo = { $number ->
+timeDiffHoursAgo =
+    { $number ->
         [one] 1 time sidan
        *[other] { $number } timar sidan
     }
-timeDiffDaysAgo = { $number ->
+timeDiffDaysAgo =
+    { $number ->
         [one] i går
        *[other] { $number } dagar sidan
     }
 timeDiffFutureSeconds = om nokre få sekund
-timeDiffFutureMinutes = { $number ->
+timeDiffFutureMinutes =
+    { $number ->
         [one] om 1 minutt
        *[other] om { $number } minutt
     }
-timeDiffFutureHours = { $number ->
+timeDiffFutureHours =
+    { $number ->
         [one] om 1 time
        *[other] om { $number } timar
     }
-timeDiffFutureDays = { $number ->
+timeDiffFutureDays =
+    { $number ->
         [one] i morgon
        *[other] om { $number } dagar
     }
@@ -193,6 +201,38 @@ annotationCropConfirmButton = Stadfest
     .title = Stadfest val
 annotationCropCancelButton = Avbryt
     .title = Avbryt val
+annotationColorWhite =
+    .title = Kvit
+annotationColorBlack =
+    .title = Svart
+annotationColorRed =
+    .title = Raud
+annotationColorGreen =
+    .title = Grøn
+annotationColorBlue =
+    .title = Blå
+annotationColorYellow =
+    .title = Gul
+annotationColorPurple =
+    .title = Lilla
+annotationColorSeaGreen =
+    .title = Havgrøn
+annotationColorGrey =
+    .title = Grå
+
+## Settings Page
+
+settingsDisconnectButton = Kople frå
+    .title = Kople frå
+settingsGuestAccountMessage = Gjestekonto
+settingsSignInInvite = Logg inn for å synkronisere på tvers av einingar
+settingsSignInButton = Logg inn
+    .title = Logg inn
+SettingsPageHeader = Innstillingar for Firefox Screenshots
+settingsDescription = Du kan logge inn med Firefox Accounts for å synkronisere alle skjermbilda dine på tvers av einingar og få tilgang til dei privat.
+settingsPageSubHeader = Synkronisering og kontoar
+settingsClosePreferences =
+    .title = Lat att innstillingar
 
 ## Shotindex page
 

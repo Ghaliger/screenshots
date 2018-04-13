@@ -10,10 +10,15 @@ let resizeStartPos;
 let resizeStartSelected;
 let selectedPos = {};
 const mousedownPos = {};
+// These are the minimum width and height of the crop selection Tool
 const minWidth = 10;
 const minHeight = 10;
+// This is how close (in pixels) you can get to the edge of the window and then
+// it will scroll:
+const scrollByEdge = 20;
 let points = [];
 let drawMousedown = false;
+let imageIsCropped = false;
 let activeColor;
 
 const movements = ["topLeft", "top", "topRight", "left", "right", "bottomLeft", "bottom", "bottomRight"];
@@ -94,6 +99,7 @@ class Selection {
 exports.Editor = class Editor extends React.Component {
   constructor(props) {
     super(props);
+    this.devicePixelRatio = window.devicePixelRatio || 1;
     this.mousedown = this.mousedown.bind(this);
     this.mouseup = this.mouseup.bind(this);
     this.mousemove = this.mousemove.bind(this);
@@ -131,17 +137,12 @@ exports.Editor = class Editor extends React.Component {
           className="image-holder centered"
           id="image-holder"
           ref={(image) => { this.imageCanvas = image }}
-          height={this.canvasHeight} width={this.canvasWidth}
+          height={this.canvasHeight * this.devicePixelRatio} width={this.canvasWidth * this.devicePixelRatio}
           style={{ height: this.canvasHeight, width: this.canvasWidth }}></canvas>
         <canvas
           className={`temp-highlighter centered ${color}`}
           id="highlighter"
           ref={(highlighter) => { this.highlighter = highlighter }}
-          height={this.canvasHeight} width={this.canvasWidth}></canvas>
-        <canvas
-          className="crop-tool centered"
-          id="crop-tool"
-          ref={(cropper) => { this.cropper = cropper }}
           height={this.canvasHeight} width={this.canvasWidth}></canvas>
         <div
           className="crop-container centered"
@@ -221,38 +222,40 @@ exports.Editor = class Editor extends React.Component {
   }
 
   onClickConfirmCrop() {
-    if (!selectedPos.width || !selectedPos.height) {
-      this.removeCropBox();
-      this.cropToolBar = null;
-      this.setState({tool: "pen"});
-      return;
-    }
     const x1 = Math.max(selectedPos.left, 0);
     const x2 = Math.min(selectedPos.right, this.canvasWidth);
     const y1 = Math.max(selectedPos.top, 0);
     const y2 = Math.min(selectedPos.bottom, this.canvasHeight);
     const cropWidth = Math.floor(x2 - x1);
     const cropHeight = Math.floor(y2 - y1);
+    if (!selectedPos.width || !selectedPos.height || (this.canvasHeight === cropHeight) && (this.canvasWidth === cropWidth)) {
+      this.removeCropBox();
+      this.cropToolBar = null;
+      this.setState({tool: this.previousTool});
+      return;
+    }
     const croppedImage = document.createElement("canvas");
-    croppedImage.width = cropWidth
-    croppedImage.height = cropHeight
+    croppedImage.width = cropWidth * this.devicePixelRatio;
+    croppedImage.height = cropHeight * this.devicePixelRatio;
     const croppedContext = croppedImage.getContext("2d");
-    croppedContext.drawImage(this.imageCanvas, x1, y1, croppedImage.width, croppedImage.height, 0, 0, croppedImage.width, croppedImage.height);
+    croppedContext.drawImage(this.imageCanvas, x1 * this.devicePixelRatio, y1 * this.devicePixelRatio, croppedImage.width, croppedImage.height, 0, 0, croppedImage.width, croppedImage.height);
     const img = new Image();
-    const imageContext = this.imageCanvas.getContext("2d");
     img.crossOrigin = "Anonymous";
     const width = cropWidth;
     const height = cropHeight;
     img.onload = () => {
+      imageContext.scale(this.devicePixelRatio, this.devicePixelRatio);
       imageContext.drawImage(img, 0, 0, width, height);
     }
-    this.imageContext = imageContext;
-    img.src = croppedImage.toDataURL("image/png");
     this.canvasWidth = cropWidth;
     this.canvasHeight = cropHeight;
+    const imageContext = this.imageCanvas.getContext("2d");
+    this.imageContext = imageContext;
+    img.src = croppedImage.toDataURL("image/png");
     this.removeCropBox();
     this.cropToolBar = null;
     this.setState({tool: this.previousTool});
+    imageIsCropped = true;
     sendEvent("confirm-crop", "crop-toolbar");
   }
 
@@ -313,10 +316,29 @@ exports.Editor = class Editor extends React.Component {
       selectedPos.y2 = this.truncateY(selectedPos.y2);
       if (selectedPos.width > minWidth && selectedPos.height > minHeight) {
         this.displayCropBox(selectedPos);
+        this.scrollIfByEdge(e.pageX, e.pageY);
       }
     }
     if (mousedown && selectionState === "resizing") {
       this.resizeCropBox(e);
+      this.scrollIfByEdge(e.pageX, e.pageY);
+    }
+  }
+
+  scrollIfByEdge(pageX, pageY) {
+    const top = window.scrollY;
+    const bottom = top + window.innerHeight;
+    const left = window.scrollX;
+    const right = left + window.innerWidth;
+    if (pageY + scrollByEdge >= bottom && bottom < document.body.scrollHeight) {
+      window.scrollBy(0, scrollByEdge);
+    } else if (pageY - scrollByEdge <= top) {
+      window.scrollBy(0, -scrollByEdge);
+    }
+    if (pageX + scrollByEdge >= right && right < document.body.scrollWidth) {
+      window.scrollBy(scrollByEdge, 0);
+    } else if (pageX - scrollByEdge <= left) {
+      window.scrollBy(-scrollByEdge, 0);
     }
   }
 
@@ -535,6 +557,10 @@ exports.Editor = class Editor extends React.Component {
     const width = this.props.clip.image.dimensions.x;
     const height = this.props.clip.image.dimensions.y;
     img.onload = () => {
+      if (imageIsCropped) {
+        imageContext.scale(this.devicePixelRatio, this.devicePixelRatio);
+        imageIsCropped = false;
+      }
       imageContext.drawImage(img, 0, 0, width, height);
       this.setState({actionsDisabled: false});
     }
@@ -544,6 +570,7 @@ exports.Editor = class Editor extends React.Component {
 
   componentDidMount() {
     this.imageContext = this.imageCanvas.getContext("2d");
+    this.imageContext.scale(this.devicePixelRatio, this.devicePixelRatio);
     this.highlightContext = this.highlighter.getContext("2d");
     this.renderImage();
     this.edit();
@@ -587,6 +614,7 @@ exports.Editor = class Editor extends React.Component {
     drawMousedown = false;
     points = [];
     if (this.state.tool === "highlighter") {
+      sendEvent("draw", "highlight");
       if (this.isColorWhite(this.state.color)) {
         this.imageContext.globalCompositeOperation = "soft-light";
       } else {
@@ -594,6 +622,8 @@ exports.Editor = class Editor extends React.Component {
       }
       this.imageContext.drawImage(this.highlighter, 0, 0);
       this.highlightContext.clearRect(0, 0, this.imageCanvas.width, this.imageCanvas.height);
+    } else {
+      sendEvent("draw", "pen");
     }
   }
 
@@ -603,7 +633,7 @@ exports.Editor = class Editor extends React.Component {
     this.pos.x = e.clientX - rect.left,
     this.pos.y = e.clientY - rect.top
     drawMousedown = true;
-    if (this.isOnUndrawableArea(e)) {
+    if (this.isOnUndrawableArea(e) || e.button !== 0) {
       drawMousedown = false;
     }
     this.draw(e);
@@ -611,7 +641,7 @@ exports.Editor = class Editor extends React.Component {
 
   draw(e) {
     e.preventDefault();
-    if (!drawMousedown || e.button !== 0) {
+    if (!drawMousedown) {
       return;
     }
     if (this.state.tool === "highlighter") {
@@ -686,6 +716,8 @@ class ColorPicker extends React.Component {
 
   constructor(props) {
     super(props);
+    this.clickMaybeClose = this.clickMaybeClose.bind(this);
+    this.keyMaybeClose = this.keyMaybeClose.bind(this);
     this.state = {
       pickerActive: false,
       color: activeColor || "#000"
@@ -693,9 +725,21 @@ class ColorPicker extends React.Component {
   }
 
   render() {
-    return <div><button className="color-button" id="color-picker" onClick={this.onClickColorPicker.bind(this)} title="Color Picker" style={{"backgroundColor": this.state.color, "border": "3px solid #D4D4D4"}}></button>
+    return <div id="color-button-container">
+      <button className="color-button" id="color-picker" onClick={this.onClickColorPicker.bind(this)} title="Color Picker" style={{"backgroundColor": this.state.color, "border": "2px solid #D4D4D4"}}></button>
+      <div id="color-button-highlight" />
       {this.state.pickerActive ? this.renderColorBoard() : null}
     </div>
+  }
+
+  componentDidUpdate() {
+    if (this.state.pickerActive) {
+      document.addEventListener("mousedown", this.clickMaybeClose);
+      document.addEventListener("keyup", this.keyMaybeClose);
+    } else {
+      document.removeEventListener("mousedown", this.clickMaybeClose);
+      document.removeEventListener("keyup", this.keyMaybeClose);
+    }
   }
 
   componentWillReceiveProps() {
@@ -704,6 +748,30 @@ class ColorPicker extends React.Component {
 
   componentWillUnmount() {
     activeColor = this.state.color;
+    document.removeEventListener("mousedown", this.clickMaybeClose);
+    document.removeEventListener("keyup", this.keyMaybeClose);
+  }
+
+  clickMaybeClose(event) {
+    if (!this.isColorBoard(event.target)) {
+      this.setState({pickerActive: false});
+    }
+  }
+
+  keyMaybeClose(event) {
+    if ((event.key || event.code) === "Escape") {
+      this.setState({pickerActive: false});
+    }
+  }
+
+  isColorBoard(el) {
+    while (el) {
+      if (el.className === "color-board" || el.className === "color-button") {
+        return true;
+      }
+      el = el.parentNode;
+    }
+    return false;
   }
 
   renderColorBoard() {
@@ -712,28 +780,47 @@ class ColorPicker extends React.Component {
         <div className="triangle-inner"></div>
       </div>
       <div className="color-row">
-        <div className="swatch" title="White" style={{backgroundColor: "#FFF", border: "1px solid #000"}} onClick={this.onClickSwatch.bind(this)}></div>
-        <div className="swatch" title="Black" style={{backgroundColor: "#000"}} onClick={this.onClickSwatch.bind(this)}></div>
-        <div className="swatch" title="Red" style={{backgroundColor: "#E74C3C"}} onClick={this.onClickSwatch.bind(this)}></div>
-      </div>
-        <div className="color-row">
-        <div className="swatch" title="Green" style={{backgroundColor: "#2ECC71"}} onClick={this.onClickSwatch.bind(this)}></div>
-        <div className="swatch" title="Blue" style={{backgroundColor: "#3498DB"}} onClick={this.onClickSwatch.bind(this)}></div>
-        <div className="swatch" title="Yellow" style={{backgroundColor: "#FF0"}} onClick={this.onClickSwatch.bind(this)}></div>
+        <Localized id="annotationColorWhite"><div className="swatch" title="White"
+          style={{ backgroundColor: "#FFF", border: "1px solid #000" }}
+          onClick={this.onClickSwatch.bind(this)}></div></Localized>
+        <Localized id="annotationColorBlack"><div className="swatch" title="Black"
+          style={{ backgroundColor: "#000" }}
+          onClick={this.onClickSwatch.bind(this)}></div></Localized>
+        <Localized id="annotationColorRed"><div className="swatch" title="Red"
+          style={{ backgroundColor: "#E74C3C" }}
+          onClick={this.onClickSwatch.bind(this)}></div></Localized>
       </div>
       <div className="color-row">
-        <div className="swatch" title="Purple" style={{backgroundColor: "#8E44AD"}} onClick={this.onClickSwatch.bind(this)}></div>
-        <div className="swatch" title="Sea Green" style={{backgroundColor: "#1ABC9C"}} onClick={this.onClickSwatch.bind(this)}></div>
-        <div className="swatch" title="Grey" style={{backgroundColor: "#34495E"}} onClick={this.onClickSwatch.bind(this)}></div>
+        <Localized id="annotationColorGreen"><div className="swatch" title="Green"
+          style={{ backgroundColor: "#2ECC71" }}
+          onClick={this.onClickSwatch.bind(this)}></div></Localized>
+        <Localized id="annotationColorBlue"><div className="swatch" title="Blue"
+          style={{ backgroundColor: "#3498DB" }}
+          onClick={this.onClickSwatch.bind(this)}></div></Localized>
+        <Localized id="annotationColorYellow"><div className="swatch" title="Yellow"
+          style={{ backgroundColor: "#FF0" }}
+          onClick={this.onClickSwatch.bind(this)}></div></Localized>
+      </div>
+      <div className="color-row">
+        <Localized id="annotationColorPurple"><div className="swatch" title="Purple"
+          style={{ backgroundColor: "#8E44AD" }}
+          onClick={this.onClickSwatch.bind(this)}></div></Localized>
+        <Localized id="annotationColorSeaGreen"><div className="swatch" title="Sea Green"
+          style={{ backgroundColor: "#1ABC9C" }}
+          onClick={this.onClickSwatch.bind(this)}></div></Localized>
+        <Localized id="annotationColorGrey"><div className="swatch" title="Grey"
+          style={{ backgroundColor: "#34495E" }}
+          onClick={this.onClickSwatch.bind(this)}></div></Localized>
       </div>
     </div>
   }
 
   onClickSwatch(e) {
     const color = e.target.style.backgroundColor;
+    const title = e.target.title.toLowerCase().replace(/\s/g, "-");
     this.setState({color, pickerActive: false});
     this.props.setColor(color);
-    sendEvent("color-change", "annotation-color-board");
+    sendEvent(`${title}-select`, "annotation-color-board");
   }
 
   onClickColorPicker() {
